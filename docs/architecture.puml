@@ -1,0 +1,64 @@
+@startuml
+title AllEstate App - Architecture Overview
+
+actor "User / Client" as Client
+node "Load Balancer\n(ALB)" as ALB
+rectangle "ECS Cluster\n(App Tasks)" as ECS {
+  component "Spring Boot App\n(REST API)" as App
+  component "Payment & Billing Service\n(initiate payments, webhooks, invoices)" as Billing
+  component "KYC & Provider Onboarding\n(verify providers)" as KYC
+  component "Background Workers\n(indexing, thumbnails, settlements)" as Workers
+}
+database "RDS PostgreSQL\n(Multi-AZ)" as RDS
+node "S3\n(Images & Assets)" as S3
+node "OpenSearch\n(Managed)" as OS
+node "AWS Secrets Manager" as Secrets
+node "Payment Gateway\n(Razorpay / PayU / CCAvenue)" as PG
+node "SQS\n(Async Queue)" as SQS
+cloud "ECR\n(Container Registry)" as ECR
+folder "Dev: docker-compose\n(Postgres + App)" as Dev
+
+Client --> ALB : HTTPS requests (REST / Web)
+ALB --> App : forwards HTTP(S)
+App --> RDS : SQL (JPA / HikariCP)
+App --> S3 : presigned URLs, PUT/GET for images
+App --> OS : index / search (sync or async)
+App --> Billing : create payment intent / invoice
+Billing --> PG : create checkout / tokenization (hosted page or token API)
+PG --> Client : hosted payment page / SDK (UPI, Cards, Netbanking)
+PG --> Billing : webhook callback (payment success / failure)
+Billing --> App : notify listing publish / change status
+Billing --> RDS : write invoice, payment record
+Billing --> SQS : publish 'payment_settlement' event
+SQS --> Workers : consume events (async processing)
+Workers --> RDS : update settlement ledger, payout status
+Workers --> OS : index documents
+App --> Secrets : fetch DB credentials, API keys at startup
+ECR --> ECS : images pulled on deploy
+Dev --> App : docker-compose for local dev (Postgres container)
+App --> "CloudWatch / Logging" : logs & metrics (not shown as node)
+
+' Sequence: Create listing with image upload
+
+== Create listing (high level) ==
+Client -> App : POST /api/listings (metadata)
+App -> RDS : INSERT listing (status = DRAFT)
+App -> S3 : create presigned PUT URL
+App -> Client : return presigned URL
+Client -> S3 : PUT image to presigned URL
+Client -> App : POST /api/listings/{id}/publish
+App -> RDS : verify image exists, update status = PENDING_PAYMENT
+App -> Billing : create payment intent for posting (INR)
+Billing -> PG : create checkout/session (hosted or token) and return client payload
+Client -> PG : complete payment (UPI / Card / Netbanking / Wallet)
+PG -> Billing : webhook -> payment success (signature + idempotency)
+Billing -> RDS : mark listing as PAID and create invoice (GST fields)
+Billing -> App : notify listing publish
+Billing -> SQS : publish 'index' and 'settlement' events
+SQS -> Workers : deliver events
+Workers -> OS : index listing document
+
+
+
+@enduml
+

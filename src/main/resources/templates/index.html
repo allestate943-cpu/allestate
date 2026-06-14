@@ -3,30 +3,76 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AllEstate - Home</title>
-  <style>
-    body { font-family: Arial, Helvetica, sans-serif; margin: 2rem; }
-    header { margin-bottom: 1.5rem }
-    .card { padding: 1rem; border: 1px solid #ddd; border-radius: 6px }
-  </style>
+  <title>All Estate - Home</title>
+  <link rel="stylesheet" href="/css/site.css" />
 </head>
 <body>
-  <header>
-    <h1>AllEstate</h1>
-    <p>Prototype: Zillow + Sulekha for the Indian market.</p>
+  <header class="site-header">
+    <div class="container nav">
+      <div class="brand">
+        <div class="logo">AE</div>
+        <div>
+          <div style="font-size:1rem">All Estate</div>
+          <div style="font-size:0.75rem;color:#6b7280">Property & services marketplace</div>
+        </div>
+      </div>
+
+      <div class="search-bar">
+        <input class="search-input" type="search" placeholder="Search locations, services, localities..." aria-label="Search" />
+      </div>
+
+      <div class="nav-actions">
+        <button id="btn-notif" class="icon-btn" title="Notifications">🔔</button>
+        <div class="dropdown">
+          <button id="btn-account" class="btn secondary">Sign in</button>
+          <div id="account-menu" class="dropdown-menu">
+            <div class="item">Sign in to access dashboard</div>
+            <div class="item"><a href="/api/auth/register">Create account</a></div>
+            <div class="item"><a href="/api/auth/login">Sign in</a></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div id="notif-menu" class="dropdown-menu" style="right:1rem;left:auto;margin-right:1rem;display:none">
+      <div class="item"><strong>Welcome</strong><div class="muted">No notifications yet</div></div>
+    </div>
   </header>
 
-  <main>
-    <div class="card">
-      <h2>Application running</h2>
-      <p>This Spring Boot application is up. Add REST controllers under <code>com.allestate.app</code> to expose APIs.</p>
-      <p>Suggested first endpoint: <code>GET /api/listings</code></p>
+  <main class="container">
+    <section class="hero card">
+      <div class="hero-text">
+        <h2>Find properties and local service providers across India</h2>
+        <p class="muted">Post listings, discover providers, and manage leads — pay per posting in INR.</p>
+      </div>
+    </section>
+
+    <div class="layout-row">
+      <div class="panel">
+        <div class="card">
+          <h3>Recent listings</h3>
+          <p class="muted">Use the API endpoint <code>GET /api/listings</code> to fetch listings. This is a static demo UI.</p>
+        </div>
+      </div>
+      <aside class="panel">
+        <div class="card">
+          <h4>Account</h4>
+          <p class="muted">Sign in to manage your listings and payments.</p>
+        </div>
+        <div style="height:1rem"></div>
+        <div class="card">
+          <h4>Notifications</h4>
+          <p class="muted">No new notifications.</p>
+        </div>
+      </aside>
     </div>
+
+    <footer style="margin-top:2rem; color:#666; font-size:0.9rem">
+      <p>All Estate — Prototype UI (static)</p>
+    </footer>
   </main>
 
-  <footer style="margin-top:2rem; color:#666; font-size:0.9rem">
-    <p>Developed locally — this is a placeholder index page.</p>
-  </footer>
+  <script src="/js/site.js"></script>
 </body>
 </html>
 
